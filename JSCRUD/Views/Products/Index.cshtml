@@ -7,9 +7,10 @@
 <h1>Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <button id="openCreateModalButton" type="button" class="btn btn-primary">Create New</button>
 </p>
-<table class="table table-striped">
+
+<table class="table table-striped" id="productsTable" data-get-url="@Url.Action("GetProduct", "Products")">
     <thead>
         <tr>
             <th>
@@ -21,32 +22,79 @@
             <th></th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="productsTableBody">
 @foreach (var item in Model) {
         <tr id="product-row-@item.ProductId">
-            <td>
+            <td class="product-name">
                 @Html.DisplayFor(model => item.Name)
             </td>
-            <td>
+            <td class="product-price">
                 @Html.DisplayFor(model => item.Price)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ProductId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ProductId">Details</a> |
-                <a href="#"
-                   class="delete-link"
-                   data-product-id="@item.ProductId"
-                   data-product-name="@item.Name"
-                   data-product-price="@item.Price">Delete</a>
+                <a href="#" class="edit-link" data-product-id="@item.ProductId">Edit</a> |
+                <a href="#" class="details-link" data-product-id="@item.ProductId">Details</a> |
+                <a href="#" class="delete-link" data-product-id="@item.ProductId">Delete</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
 
-<form id="deleteAntiForgeryForm">
+<form id="antiForgeryForm">
     @Html.AntiForgeryToken()
 </form>
+
+<div class="modal fade" id="productFormModal" tabindex="-1" aria-labelledby="productFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productFormModalLabel">Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="productFormError" class="alert alert-danger d-none" role="alert"></div>
+                <form id="productForm">
+                    <input id="formProductId" type="hidden" />
+                    <div class="mb-3">
+                        <label for="formProductName" class="form-label">Name</label>
+                        <input id="formProductName" type="text" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="formProductPrice" class="form-label">Price</label>
+                        <input id="formProductPrice" type="number" class="form-control" step="0.01" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="saveProductButton"
+                        type="button"
+                        class="btn btn-primary"
+                        data-create-url="@Url.Action("CreateFromIndex", "Products")"
+                        data-edit-url="@Url.Action("EditFromIndex", "Products")">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Product Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> <span id="detailsProductName"></span></p>
+                <p><strong>Price:</strong> <span id="detailsProductPrice"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog">

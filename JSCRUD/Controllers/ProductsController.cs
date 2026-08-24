@@ -110,18 +110,79 @@ public class ProductsController : Controller
         return View(product);
     }
 
-    // POST: PRODUCTS/DeleteFromIndex
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteFromIndex(int? id)
+    // GET: PRODUCTS/GetProduct/5
+    [HttpGet]
+    public async Task<IActionResult> GetProduct(int? id)
     {
-        // If id is null, the user did not click the delete button
         if (id == null)
         {
             return BadRequest();
         }
 
-        // Ensure the product still exists
+        var product = await _context.Product.FindAsync(id);
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(ToProductPayload(product));
+    }
+
+    // POST: PRODUCTS/CreateFromIndex
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFromIndex([Bind("Name,Price")] Product product)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        _context.Product.Add(product);
+        await _context.SaveChangesAsync();
+
+        return Ok(ToProductPayload(product));
+    }
+
+    // POST: PRODUCTS/EditFromIndex/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditFromIndex(int? id, [Bind("ProductId,Name,Price")] Product product)
+    {
+        if (id == null || id != product.ProductId)
+        {
+            return BadRequest();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var existingProduct = await _context.Product.FindAsync(id);
+        if (existingProduct == null)
+        {
+            return NotFound();
+        }
+
+        existingProduct.Name = product.Name;
+        existingProduct.Price = product.Price;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(ToProductPayload(existingProduct));
+    }
+
+    // POST: PRODUCTS/DeleteFromIndex
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFromIndex(int? id)
+    {
+        if (id == null)
+        {
+            return BadRequest();
+        }
+
         var product = await _context.Product.FindAsync(id);
         if (product == null)
         {
@@ -132,6 +193,17 @@ public class ProductsController : Controller
         await _context.SaveChangesAsync();
 
         return Ok();
+    }
+
+    private static object ToProductPayload(Product product)
+    {
+        return new
+        {
+            productId = product.ProductId,
+            name = product.Name,
+            price = product.Price,
+            priceDisplay = product.Price.ToString("C")
+        };
     }
 
     private bool ProductExists(int? productid)
