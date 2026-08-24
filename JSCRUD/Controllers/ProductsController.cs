@@ -110,37 +110,28 @@ public class ProductsController : Controller
         return View(product);
     }
 
-    // GET: PRODUCTS/Delete/5
-    public async Task<IActionResult> Delete(int? id)
+    // POST: PRODUCTS/DeleteFromIndex
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFromIndex(int? id)
     {
+        // If id is null, the user did not click the delete button
         if (id == null)
         {
-            return NotFound();
+            return BadRequest();
         }
 
-        var product = await _context.Product
-            .FirstOrDefaultAsync(m => m.ProductId == id);
+        // Ensure the product still exists
+        var product = await _context.Product.FindAsync(id);
         if (product == null)
         {
             return NotFound();
         }
 
-        return View(product);
-    }
-
-    // POST: PRODUCTS/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? id)
-    {
-        var product = await _context.Product.FindAsync(id);
-        if (product != null)
-        {
-            _context.Product.Remove(product);
-        }
-
+        _context.Product.Remove(product);
         await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+
+        return Ok();
     }
 
     private bool ProductExists(int? productid)
